@@ -32,23 +32,23 @@ def get_scene_text():
     roi = cv2.erode(roi, kernel, iterations=1)
     # Get text from image 
     scene_text = (pytesseract.image_to_string(roi, lang='rus'))
-    print(f'Got this text from screen:\n{scene_text}')
+    # print(f'Got this text from screen:\n{scene_text}')
     return scene_text
 
 
 def reconnect(array, image):
     if array[0][0] and array[0][1] and array[0][2] and array[0][3] in image:
         pyautogui.press('enter')
-        print('Re-login pressed!')
+        print('Reconnect pressed!')
         sleep(random.uniform(5, 10))
     else:
-        relogin(array, image)
+        re_login(array, image)
 
 
-def relogin(array, image):
+def re_login(array, image):
     if array[1][0] in image:
         pyautogui.press('enter')
-        print('Connect pressed!')
+        print('Re-login pressed!')
     else:
         afk(array, image)
 
@@ -73,23 +73,17 @@ def main(words):
         if current_window == wow_title:
             screen_text = get_scene_text()
 
-            in_queue = True
-            while in_queue:
-                if not words[2][0] and not words[2][1]:
-                    print('Seems queue ended')
-                    in_queue = False
-                if in_queue:
-                    time_to_wait = random.uniform(30, 60)
-                    print(f'{datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")} Still in queue.\nWill wait {str(time_to_wait)} seconds.')
-                    sleep(time_to_wait)
+            if words[2][0] and words[2][1]:
+                print(f'{datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")} Still in queue.\nWill wait 60 seconds.')
+                sleep(60)
 
-            if words[0][0] or words[0][1] or words[0][2] or words[0][3] in screen_text:
+            elif words[1][0] in screen_text:
+                re_login(words, screen_text)
+                sleep(30)
+
+            elif words[0][0] or words[0][1] or words[0][2] or words[0][3] in screen_text:
                 reconnect(words, screen_text)
-                sleep(random.uniform(5, 10))
-
-            if words[1][0] in screen_text:
-                relogin(words, screen_text)
-                sleep(random.uniform(20, 25))
+                sleep(5)
 
             afk(words, screen_text)
         else:
