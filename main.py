@@ -40,17 +40,14 @@ def reconnect(array, image):
     if array[0][0] and array[0][1] and array[0][2] and array[0][3] in image:
         pyautogui.press('enter')
         print('Reconnect pressed!')
-        sleep(random.uniform(5, 10))
+        sleep(5)
     else:
         re_login(array, image)
 
 
-def re_login(array, image):
-    if array[1][0] in image:
-        pyautogui.press('enter')
-        print('Re-login pressed!')
-    else:
-        afk(array, image)
+def re_login():
+    pyautogui.press('enter')
+    print('Re-login pressed!')
 
 
 def afk(array, image):
@@ -73,12 +70,12 @@ def main(words):
         if current_window == wow_title:
             screen_text = get_scene_text()
 
-            if words[2][0] and words[2][1]:
+            if words[2][0] and words[2][1] in screen_text:
                 print(f'{datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")} Still in queue.\nWill wait 60 seconds.')
                 sleep(60)
 
             elif words[1][0] in screen_text:
-                re_login(words, screen_text)
+                re_login()
                 sleep(30)
 
             elif words[0][0] or words[0][1] or words[0][2] or words[0][3] in screen_text:
