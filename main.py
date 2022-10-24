@@ -3,17 +3,16 @@ import numpy as np
 import pytesseract
 import pyautogui
 from time import sleep, time
-from re import sub
+import datetime
 import random
 
-global supported_languages, startTime
-supported_languages = ['english', 'russian']
-startTime = time()
+global START_TIME
 
-# Get text from screenshot
-def getSceneText():
-    # Logic taken from github user Misha91 repo called WoW-login-bot, big thanks for him!
-    # Take screenshot
+
+START_TIME = time()
+
+
+def get_scene_text():
     image = np.array(pyautogui.screenshot())
     image = image[:, :, ::-1].copy()
     width, height = image.shape[:2]
@@ -32,19 +31,20 @@ def getSceneText():
     roi = cv2.dilate(img, kernel, iterations=1)
     roi = cv2.erode(roi, kernel, iterations=1)
     # Get text from image 
-    sceneText = (pytesseract.image_to_string(roi, lang='rus'))
-    return sceneText
+    scene_text = (pytesseract.image_to_string(roi, lang='rus'))
+    print(f'Got this text from screen:\n{scene_text}')
+    return scene_text
 
-# Reconnect after kick from server
+
 def reconnect(array, image):
     if array[0][0] and array[0][1] and array[0][2] and array[0][3] in image:
         pyautogui.press('enter')
         print('Re-login pressed!')
-        sleep(5)
+        sleep(random.uniform(5, 10))
     else:
         relogin(array, image)
 
-# Login from character selecting screen 
+
 def relogin(array, image):
     if array[1][0] in image:
         pyautogui.press('enter')
@@ -52,66 +52,52 @@ def relogin(array, image):
     else:
         afk(array, image)
 
-# Move you character to avoid AFK
+
 def afk(array, image):
-    keys = ['w', 'a', 's', 'd', 'space', '[', ']']
+    keys = ['w', 'a', 's', 'd', 'space', 'q', 'e']
     if array[0][0] and array[0][1] and array[0][2] and array[0][3] not in image:
-        keys_select = random.randint(0, 6) # Select random key from 'keys' list
-        pressed_time = random.uniform(0, 2) # Chooses how long the key should be pressed (0-2 seconds)
-        rand_wait = random.uniform(1, 225) # Chooses when the key will be pressed (between 1-225 seconds)
-        pyautogui.keyDown(keys[keys_select]) # Press down key
-        sleep(pressed_time) # Time used from press to release the button
-        pyautogui.keyUp(keys[keys_select]) # Release key
-        print(f"Script working for {(time()-startTime)/60:.1f} minutes.\nPressed key {keys[keys_select]} for {pressed_time:.1f} seconds.\nWaiting {rand_wait:.1f} seconds.\n")
-        sleep(rand_wait) # How long script should wait before pressing down a new key
+        keys_select = random.randint(0, 6)
+        pressed_time = random.uniform(0, 2)
+        rand_wait = random.uniform(1, 225)
+        pyautogui.keyDown(keys[keys_select])
+        sleep(pressed_time)
+        pyautogui.keyUp(keys[keys_select])
+        print(f'Script working for {(time() - START_TIME) / 60:.1f} minutes.\nPressed key {keys[keys_select]} for {pressed_time:.1f} seconds.\nWaiting {rand_wait:.1f} seconds.\n')
+        sleep(rand_wait)
 
-# Check if you WoW window's open and start defined functions, also check status and select func
+
 def main(words):
-    reconnect_array = words
     while True:
-        wowTitle = "World of Warcraft"
-        currentWindow = pyautogui.getActiveWindowTitle()
-        if(currentWindow == wowTitle):
-            screenText = getSceneText()
-            if reconnect_array[0][0] or reconnect_array[0][1] or reconnect_array[0][2] or reconnect_array[0][3] in screenText:
-                reconnect(reconnect_array, screenText)
-                sleep(5)
-            else:
-                next
+        wow_title = "World of Warcraft"
+        current_window = pyautogui.getActiveWindowTitle()
+        if current_window == wow_title:
+            screen_text = get_scene_text()
 
-            if reconnect_array[1][0] in screenText:
-                relogin(reconnect_array, screenText)
-                sleep(20)
-            else:
-                next
+            in_queue = True
+            while in_queue:
+                if not words[2][0] and not words[2][1]:
+                    print('Seems queue ended')
+                    in_queue = False
+                if in_queue:
+                    time_to_wait = random.uniform(30, 60)
+                    print(f'{datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")} Still in queue.\nWill wait {str(time_to_wait)} seconds.')
+                    sleep(time_to_wait)
 
-            if reconnect_array[0][0] and reconnect_array[0][1] and reconnect_array[0][2] and reconnect_array[0][3] not in screenText:
-                afk(reconnect_array, screenText)
-            else:
-                continue
+            if words[0][0] or words[0][1] or words[0][2] or words[0][3] in screen_text:
+                reconnect(words, screen_text)
+                sleep(random.uniform(5, 10))
+
+            if words[1][0] in screen_text:
+                relogin(words, screen_text)
+                sleep(random.uniform(20, 25))
+
+            afk(words, screen_text)
         else:
             print('Wrong window')
             sleep(5)
 
-# Simple language selector for you game (tested only on Russian, tell me if something wrong on eng version)  
-def language_select(language):
-    russian_words = [['Переподключение', 'Настройки', 'Создатели', 'Выйти'], ['Удалить персонажа']]
-    english_words = [['Reconnect', 'System', 'Credits', 'Quit'], ['Delete Character']]
-    reconnect_array = []
-
-    if language in supported_languages:
-        if language == 'russian':
-            reconnect_array = russian_words
-        elif language == 'english':
-            reconnect_array = english_words
-    else:
-        print('Wrong selection! (English/Russian)')
-        exit()
-    
-    print(f'You have selected {language} language, open your WoW window in next five seconds.')
-    sleep(5)
-    main(reconnect_array)
 
 if __name__ == '__main__':
-    print('Choose your language:')
-    language_select(input().lower())
+    russian_words = [['Переподключение', 'Настройки', 'Создатели', 'Выйти'], ['Войти в игровой мир'],
+                     ['Место в очереди:', 'Время ожидания:']]
+    main(russian_words)
