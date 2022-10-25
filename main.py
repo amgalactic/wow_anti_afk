@@ -42,7 +42,7 @@ def reconnect(array, image):
         print('Reconnect pressed!')
         sleep(5)
     else:
-        re_login(array, image)
+        re_login()
 
 
 def re_login():
