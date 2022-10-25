@@ -78,7 +78,7 @@ def main(words):
                 re_login()
                 sleep(30)
 
-            elif words[0][0] or words[0][1] or words[0][2] or words[0][3] in screen_text:
+            elif words[0][0] in screen_text:
                 reconnect(words, screen_text)
                 sleep(5)
 
